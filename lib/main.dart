@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'dart:async';
-import 'dart:convert';
+import './watson.dart';
 
 final ThemeData iOSTheme = new ThemeData(
     primarySwatch: Colors.red,
@@ -13,7 +11,7 @@ final ThemeData iOSTheme = new ThemeData(
 final ThemeData androidTheme =
     new ThemeData(primarySwatch: Colors.blue, primaryColor: Colors.green);
 
-const String defaultUserName = "John Doe";
+const String defaultUserName = "Eu";
 
 void main() => runApp(new MyApp());
 
@@ -121,7 +119,7 @@ class ChatWindow extends State<Chat> with TickerProviderStateMixin {
       txt: txt,
       animationController: new AnimationController(
           vsync: this, duration: new Duration(milliseconds: 800)),
-          userMsg: true,
+      userMsg: true,
     );
 
     setState(() {
@@ -134,11 +132,10 @@ class ChatWindow extends State<Chat> with TickerProviderStateMixin {
     final watsonMsg = await Watson.call(txt);
 
     Msg _watsonText = new Msg(
-      txt: watsonMsg,
-      animationController: new AnimationController(
-          vsync: this, duration: new Duration(milliseconds: 800)),
-          userMsg: false
-    );
+        txt: watsonMsg,
+        animationController: new AnimationController(
+            vsync: this, duration: new Duration(milliseconds: 800)),
+        userMsg: false);
 
     setState(() {
       _messages.insert(0, _watsonText);
@@ -157,33 +154,6 @@ class ChatWindow extends State<Chat> with TickerProviderStateMixin {
   }
 }
 
-class Watson {
-  String eu;
-  String watson;
-  int statusCode;
-  String data;
-
-  Watson({this.eu, this.watson, this.statusCode, this.data});
-
-  factory Watson.fromJson(Map<String, dynamic> parsedJson) {
-    return Watson(
-        eu: parsedJson['eu'],
-        watson: parsedJson['watson'] as String,
-        statusCode: parsedJson['statusCode'],
-        data: parsedJson['data']);
-  }
-
-  static Future<String> call(String userMsg) async {
-    final url = 'http://192.168.1.10:3001/watson';
-    Map<String, String> headers = {'Accept': 'application/json'};
-    Map<String, String> body = {'message': userMsg};
-
-    final response = await http.post(url, headers: headers, body: body);
-    final _finalRes = Watson.fromJson(json.decode(response.body));
-    return _finalRes.watson;
-  }
-}
-
 class Msg extends StatelessWidget {
   Msg({this.txt, this.animationController, this.userMsg});
   final String txt;
@@ -197,19 +167,25 @@ class Msg extends StatelessWidget {
           parent: animationController, curve: Curves.easeOut),
       axisAlignment: 0.0,
       child: new Container(
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        margin: const EdgeInsets.symmetric(vertical: 15.0),
         child: new Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             new Container(
-              margin: const EdgeInsets.only(right: 10.0),
-              child: new CircleAvatar(child: new Text(defaultUserName[0])),
-            ),
+                margin: this.userMsg == true
+                    ? const EdgeInsets.only(right: 10)
+                    : const EdgeInsets.only(left: 160.0),
+                child: this.userMsg == true
+                    ? new CircleAvatar(
+                        child: new Text(defaultUserName[0]),
+                        backgroundColor: Colors.blue)
+                    : new CircleAvatar(
+                        child: new Text('W'), backgroundColor: Colors.green)),
             new Expanded(
               child: new Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  new Text(defaultUserName,
+                  new Text(this.userMsg == true ? defaultUserName : 'Watson',
                       style: Theme.of(context).textTheme.subhead),
                   new Container(
                     margin: const EdgeInsets.only(top: 6.0),
